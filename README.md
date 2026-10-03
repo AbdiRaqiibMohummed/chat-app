@@ -62,8 +62,6 @@ You can find both values in your Supabase dashboard under **Project Settings →
 | `REACT_APP_SUPABASE_URL`      | Your project URL (format: `https://<ref>.supabase.co`) |
 | `REACT_APP_SUPABASE_ANON_KEY` | The public `anon` key. Safe for the browser when Row Level Security is used |
 
-> **Important:** Never put secrets (such as your database password or the `service_role` key) in a `REACT_APP_` variable. Anything with that prefix is bundled into the client code and visible to every visitor. This app does not need a database password, so don't add one.
-
 Make sure `.env` is listed in your `.gitignore`:
 
 ```gitignore
