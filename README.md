@@ -1,70 +1,137 @@
-# Getting Started with Create React App
+# Supabase Realtime Chat
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A real-time group chat app built with **React** and **Supabase**. Users sign in with Google, join a shared chat room, see who's online, and exchange messages instantly using Supabase Realtime (Broadcast + Presence).
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Google sign-in** via Supabase Auth (OAuth)
+- **Real-time messaging** using Supabase Realtime Broadcast
+- **Online presence**: live count of users currently in the room
+- **User avatars** pulled from the Google profile
+- **Message timestamps** and auto-scroll to the latest message
+- **Responsive UI** styled with Tailwind CSS
 
-### `npm start`
+## Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+| Layer     | Technology                          |
+| --------- | ----------------------------------- |
+| Frontend  | React (Create React App), Tailwind CSS |
+| Auth      | Supabase Auth (Google OAuth)        |
+| Realtime  | Supabase Realtime (Broadcast, Presence) |
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Project Structure
 
-### `npm test`
+```
+src/
+├── App.js                  # Chat UI, channel subscription, send/receive logic
+├── hooks/
+│   └── useSession.js       # Hook that tracks the current Supabase auth session
+└── lib/
+    └── supabaseClient.js   # Supabase client initialisation
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Prerequisites
 
-### `npm run build`
+- [Node.js](https://nodejs.org/) 18 or later
+- A free [Supabase](https://supabase.com/) account and project
+- A Google Cloud project with OAuth credentials (see below)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Getting Started
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 1. Clone and install
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+git clone <your-repo-url>
+cd <your-project-folder>
+npm install
+```
 
-### `npm run eject`
+### 2. Set up environment variables
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Create a `.env` file in the project root:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```dotenv
+REACT_APP_SUPABASE_URL=https://your-project-ref.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=your-anon-public-key
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+You can find both values in your Supabase dashboard under **Project Settings → API**.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+| Variable                      | Description                                         |
+| ----------------------------- | --------------------------------------------------- |
+| `REACT_APP_SUPABASE_URL`      | Your project URL (format: `https://<ref>.supabase.co`) |
+| `REACT_APP_SUPABASE_ANON_KEY` | The public `anon` key. Safe for the browser when Row Level Security is used |
 
-## Learn More
+> **Important:** Never put secrets (such as your database password or the `service_role` key) in a `REACT_APP_` variable. Anything with that prefix is bundled into the client code and visible to every visitor. This app does not need a database password, so don't add one.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Make sure `.env` is listed in your `.gitignore`:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```gitignore
+.env
+.env.local
+```
 
-### Code Splitting
+### 3. Configure the Supabase client
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+`src/lib/supabaseClient.js`:
 
-### Analyzing the Bundle Size
+```js
+import { createClient } from "@supabase/supabase-js";
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+export const supabase = createClient(
+  process.env.REACT_APP_SUPABASE_URL,
+  process.env.REACT_APP_SUPABASE_ANON_KEY
+);
+```
 
-### Making a Progressive Web App
+### 4. Enable Google authentication
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. In the [Google Cloud Console](https://console.cloud.google.com/), create an **OAuth 2.0 Client ID** (type: Web application).
+2. Add your Supabase callback URL as an **Authorized redirect URI**:
+   `https://<your-project-ref>.supabase.co/auth/v1/callback`
+3. In Supabase, go to **Authentication → Providers → Google**, enable it, and paste in the Google **Client ID** and **Client Secret**.
+4. Under **Authentication → URL Configuration**, set the **Site URL** to `http://localhost:3000` for development, and add your production URL to the **Redirect URLs** list when you deploy.
 
-### Advanced Configuration
+### 5. Run the app
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+npm start
+```
 
-### Deployment
+Open [http://localhost:3000](http://localhost:3000), sign in with Google, and open a second browser window (with a different Google account) to see messages and presence update in real time.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## How It Works
 
-### `npm run build` fails to minify
+- **Channel:** every signed-in user subscribes to a Supabase Realtime channel called `room_one`.
+- **Presence:** on subscribing, each user calls `track()` with their user ID. The `presence` `sync` event updates the "users online" count.
+- **Broadcast:** when a user sends a message, it is added to local state immediately and broadcast to the channel as a `message` event. Other clients receive it and append it to their message list.
+- **Cleanup:** the channel is unsubscribed when the user signs out or the component unmounts.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Known Limitations
+
+- **Messages are not persisted.** Broadcast is ephemeral, so history is lost on refresh and users only see messages sent while they're connected. To keep history, store messages in a Supabase table and load them on startup.
+- **Single room.** All users share one hard-coded room (`room_one`).
+
+## Ideas for Future Improvements
+
+- Save messages to a Supabase Postgres table with Row Level Security
+- Multiple chat rooms
+- Typing indicators using Presence
+- Prevent sending empty messages
+- Display names instead of email addresses in the chat
+
+## Scripts
+
+| Command         | Description                          |
+| --------------- | ------------------------------------ |
+| `npm start`     | Run the app in development mode      |
+| `npm run build` | Create an optimised production build |
+| `npm test`      | Run tests                            |
+
+## Deployment
+
+Works with any static host (Vercel, Netlify, etc.). Add `REACT_APP_SUPABASE_URL` and `REACT_APP_SUPABASE_ANON_KEY` as environment variables in your host's settings, and add your deployed URL to Supabase's **Redirect URLs**.
+
+## License
+
+MIT
