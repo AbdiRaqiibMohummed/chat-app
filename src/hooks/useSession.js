@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 export const useSession = () => {
   // eslint-disable-next-line no-undef
-  const [session, setSession] = useState([]);
+  const [session, setSession] = useState(null);
   
  
   useEffect(() => {
@@ -21,7 +21,6 @@ export const useSession = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  console.log(session);
 
   return {
     session,

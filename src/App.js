@@ -73,10 +73,11 @@ function App() {
   const sendMessage = async (e) => {
     e.preventDefault();
 
-    if (!channelRef.current) return;
+    const message = newMessage.trim();
+    if (!message || !channelRef.current) return;
 
     const messagePayload = {
-      message: newMessage,
+      message,
       user_name: session?.user?.user_metadata?.email,
       avatar: session?.user?.user_metadata?.avatar_url,
       timestamp: new Date().toISOString(),
@@ -87,16 +88,10 @@ function App() {
     await channelRef.current.send({
       type: "broadcast",
       event: "message",
-      payload: {
-        message: newMessage,
-        user_name: session?.user?.user_metadata?.email,
-        avatar: session?.user?.user_metadata?.avatar_url,
-        timestamp: new Date().toISOString(),
-      },
+      payload: messagePayload,
     });
 
     setNewMessage("");
-    console.log("User metadata:", session?.user?.user_metadata);
   };
 
   const formatTime = (isoString) => {
@@ -127,9 +122,9 @@ function App() {
   } else {
     return (
       <div className="w-full flex h-screen justify-center items-center p-4">
-        <div className="border-[1px] border-gray-500 max-w-6xl w-full min-h-[600px] rounded-lg">
+        <div className="border-[2px] border-gray-500 max-w-6xl w-full min-h-[600px] rounded-lg">
           {/* header */}
-          <div className="flex justify-between h-20 border-b-[1px] border-gray-500">
+          <div className="flex justify-between h-20 border-b-[2px] border-gray-500">
             <div className="p-4">
               <p className="text-gray-300">
                 Signed in as {session?.user?.user_metadata?.full_name}{" "}
@@ -170,7 +165,7 @@ function App() {
                 )}
                 <div className="flex flex-col w-full">
                   <div
-                    className={`p-1 max-w[70%] rounded-xl ${
+                    className={`p-2 max-w-[70%] rounded-xl ${
                       msg?.user_name === session?.user?.user_metadata?.email
                         ? "bg-gray-700 text-white ml-auto"
                         : "bg-gray-500 text-white mr-auto"
@@ -216,7 +211,6 @@ function App() {
               className="p-2 w-full bg-[#00000040] rounded-lg"
             />
             <button
-              onClick={sendMessage}
               type="submit"
               className="mt-4 sm:mt-0 sm:ml-8  bg-gray-500 max-h-12 text-white font-semibold py-2 px-3 rounded"
             >
